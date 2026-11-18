@@ -17,6 +17,7 @@ enum Node {
 /// precedes its parents, so one event needs only one topological pass.
 pub struct Plan {
   priv nodes : Array[Node]
+  priv temporal_nodes : Array[Int32]
   priv roots : Array[Int32]
   priv names : Array[String]
   priv formulas : Array[Formula]
@@ -179,7 +180,16 @@ pub fn Plan::new(
     names.push(name)
     formulas.push(formula)
   }
+  let temporal_nodes : Array[Int32] = []
+  for id in 0..<compiler.nodes.length() {
+    match compiler.nodes[id] {
+      AnyPast(_, _) | AllPast(_, _) | SincePast(_, _, _) =>
+        temporal_nodes.push(id)
+      _ => ()
+    }
+  }
   Ok({
+    temporal_nodes,
     nodes: compiler.nodes,
     atoms: compiler.atoms,
     roots,

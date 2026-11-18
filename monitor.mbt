@@ -226,13 +226,9 @@ pub fn Monitor::push(
       }
     }
   }
-  // Commit only after every node passed the shared candidate budget.
-  for id in 0..<size {
-    match self.plan.nodes[id] {
-      AnyPast(_, _) | AllPast(_, _) | SincePast(_, _, _) =>
-        self.queues[id].commit(heads[id], additions[id])
-      _ => ()
-    }
+  // The compiler records exactly the nodes owning temporal queues.
+  for id in self.plan.temporal_nodes {
+    self.queues[id].commit(heads[id], additions[id])
   }
   let output : Array[Bool] = []
   for root in self.plan.roots {

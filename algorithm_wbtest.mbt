@@ -59,3 +59,25 @@ test "binary expiration agrees with linear lower bound for all frontier shapes" 
   }
   assert_eq(CandidateQueue::new().first_live(0, 0L, 0L), 0)
 }
+
+///|
+test "temporal commit schedule contains each queue owner exactly once" {
+  let plan = Plan::from_strings([
+    ("a", "once[1,3] p | previous q"),
+    ("b", "historically[2,4] q & once[1,3] p"),
+    ("c", "p since[0,5] q"),
+  ]).unwrap()
+  assert_eq(plan.temporal_nodes.length(), 3)
+  let mut previous = -1
+  for id in plan.temporal_nodes {
+    assert_true(id > previous)
+    assert_true(
+      (plan.nodes[id] is AnyPast(_, _)) | AllPast(_, _) | SincePast(_, _, _),
+    )
+    previous = id
+  }
+  assert_eq(
+    Plan::from_strings([("pure", "previous p & !q")]).unwrap().temporal_nodes.length(),
+    0,
+  )
+}
