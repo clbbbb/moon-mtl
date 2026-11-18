@@ -29,6 +29,7 @@ priv struct Compiler {
   nodes : Array[Node]
   keys : Map[String, Int32]
   atoms : Array[String]
+  atom_set : Map[String, Bool]
   limits : Limits
   mut visits : Int32
 }
@@ -79,7 +80,8 @@ fn Compiler::visit(
       if !valid_identifier(name) || reserved_atom(name) {
         return Err(SyntaxError(0, "invalid or reserved atom name"))
       }
-      if !self.atoms.contains(name) {
+      if self.atom_set.get(name) is None {
+        self.atom_set[name] = true
         self.atoms.push(name)
       }
       self.intern("input:" + name, Input(name))
@@ -156,6 +158,7 @@ pub fn Plan::new(
     nodes: [],
     keys: Map([]),
     atoms: [],
+    atom_set: Map([]),
     limits,
     visits: 0,
   }
