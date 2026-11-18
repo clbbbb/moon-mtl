@@ -1,14 +1,14 @@
 {
   "method": "nonblank non-line-comment *.mbt; build, dependencies and generated interfaces excluded",
   "groups": {
-    "tests": 1941,
+    "tests": 1943,
     "core": 1839,
     "cli": 222,
     "scenarios": 138
   },
-  "total": 4140,
+  "total": 4142,
   "files": {
-    "algorithm_wbtest.mbt": 74,
+    "algorithm_wbtest.mbt": 76,
     "audit.mbt": 99,
     "audit_test.mbt": 74,
     "cmd/main/main.mbt": 222,

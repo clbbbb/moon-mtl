@@ -72,7 +72,9 @@ test "temporal commit schedule contains each queue owner exactly once" {
   for id in plan.temporal_nodes {
     assert_true(id > previous)
     assert_true(
-      (plan.nodes[id] is AnyPast(_, _)) | AllPast(_, _) | SincePast(_, _, _),
+      plan.nodes[id] is AnyPast(_, _) ||
+      plan.nodes[id] is AllPast(_, _) ||
+      plan.nodes[id] is SincePast(_, _, _),
     )
     previous = id
   }
