@@ -83,3 +83,36 @@ test "temporal commit schedule contains each queue owner exactly once" {
     0,
   )
 }
+
+///|
+test "value double buffering isolates failed pushes and previously returned decisions" {
+  let plan = Plan::from_strings(
+    [("prior", "previous p"), ("window", "once[0,2] p")],
+    limits=Limits::new(candidates=1).unwrap(),
+  ).unwrap()
+  let monitor = Monitor::new(plan)
+  let first = monitor
+    .push(Observation::new(0L, Map([("p", true)])).unwrap())
+    .unwrap()
+  let committed = monitor.last_values.copy()
+  for _ in 0..<5 {
+    assert_true(
+      monitor.push(Observation::new(1L, Map([("p", true)])).unwrap()) is Err(_),
+    )
+    assert_eq(monitor.last_values, committed)
+    assert_eq(first.values(), [false, true])
+  }
+  let second = monitor
+    .push(Observation::new(1L, Map([("p", false)])).unwrap())
+    .unwrap()
+  assert_eq(second.values(), [true, true])
+  assert_eq(
+    monitor
+    .push(Observation::new(4L, Map([("p", false)])).unwrap())
+    .unwrap()
+    .values(),
+    [false, false],
+  )
+  assert_eq(first.values(), [false, true])
+  assert_eq(second.values(), [true, true])
+}

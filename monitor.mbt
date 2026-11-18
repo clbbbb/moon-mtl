@@ -101,6 +101,7 @@ pub struct Monitor {
   priv plan : Plan
   priv queues : Array[CandidateQueue]
   priv mut last_values : Array[Bool]
+  priv mut scratch_values : Array[Bool]
   priv mut witnesses : Array[Witness?]
   priv mut barriers : Array[Witness?]
   priv mut last_time : Int64?
@@ -119,6 +120,7 @@ pub fn Monitor::new(plan : Plan) -> Monitor {
     plan,
     queues,
     last_values: Array::make(plan.nodes.length(), false),
+    scratch_values: Array::make(plan.nodes.length(), false),
     witnesses: Array::make(plan.nodes.length(), None),
     barriers: Array::make(plan.nodes.length(), None),
     last_time: None,
@@ -161,7 +163,7 @@ pub fn Monitor::push(
     Ok(_) => ()
   }
   let size = self.plan.nodes.length()
-  let values = Array::make(size, false)
+  let values = self.scratch_values
   let heads = Array::make(size, 0)
   let additions : Array[Witness?] = Array::make(size, None)
   let witnesses : Array[Witness?] = Array::make(size, None)
@@ -240,7 +242,9 @@ pub fn Monitor::push(
     names: self.plan.names.copy(),
     values: output,
   }
+  let previous_values = self.last_values
   self.last_values = values
+  self.scratch_values = previous_values
   self.witnesses = witnesses
   self.barriers = barriers
   self.last_time = Some(event.time)
