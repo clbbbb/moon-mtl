@@ -88,4 +88,4 @@ let verdict = decision.value("send_checked")
 
 这是独立实现，算法依据时序逻辑语义和公开文献。与现有项目的关系及许可证记录见 [来源说明](docs/sources.md)。许可证为 Apache-2.0。
 
-仓库和 Mooncakes 发布地址尚未配置；本地构建通过不等于远端 CI 或大赛验收已经通过。
+GitHub 仓库：https://github.com/clbbbb/moon-mtl 。Mooncakes 尚未发布；本地构建通过不等于远端 CI 或大赛验收已经通过。
