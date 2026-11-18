@@ -100,6 +100,8 @@ pub fn Decision::all_true(self : Decision) -> Bool {
 pub struct Monitor {
   priv plan : Plan
   priv queues : Array[CandidateQueue]
+  priv staged_heads : Array[Int32]
+  priv staged_additions : Array[Witness?]
   priv mut last_values : Array[Bool]
   priv mut scratch_values : Array[Bool]
   priv mut witnesses : Array[Witness?]
@@ -119,6 +121,8 @@ pub fn Monitor::new(plan : Plan) -> Monitor {
   {
     plan,
     queues,
+    staged_heads: Array::make(plan.nodes.length(), 0),
+    staged_additions: Array::make(plan.nodes.length(), None),
     last_values: Array::make(plan.nodes.length(), false),
     scratch_values: Array::make(plan.nodes.length(), false),
     witnesses: Array::make(plan.nodes.length(), None),
@@ -164,8 +168,8 @@ pub fn Monitor::push(
   }
   let size = self.plan.nodes.length()
   let values = self.scratch_values
-  let heads = Array::make(size, 0)
-  let additions : Array[Witness?] = Array::make(size, None)
+  let heads = self.staged_heads
+  let additions = self.staged_additions
   let witnesses : Array[Witness?] = Array::make(size, None)
   let barriers = self.barriers.copy()
   let mut retained = 0

@@ -116,3 +116,28 @@ test "value double buffering isolates failed pushes and previously returned deci
   assert_eq(first.values(), [false, true])
   assert_eq(second.values(), [true, true])
 }
+
+///|
+test "reused queue staging overwrites aborted additions before committing a retry" {
+  let plan = Plan::from_strings(
+    [("a", "once[0,2] p"), ("b", "once[0,2] q")],
+    limits=Limits::new(candidates=1).unwrap(),
+  ).unwrap()
+  let monitor = Monitor::new(plan)
+  let event = fn(t, p, q) {
+    Observation::new(t, Map([("p", p), ("q", q)])).unwrap()
+  }
+  assert_eq(monitor.push(event(0L, true, false)).unwrap().values(), [
+    true, false,
+  ])
+  assert_true(monitor.push(event(1L, true, true)) is Err(_))
+  assert_eq(monitor.push(event(10L, false, true)).unwrap().values(), [
+    false, true,
+  ])
+  assert_true(monitor.push(event(11L, false, true)) is Err(_))
+  assert_eq(monitor.push(event(11L, false, false)).unwrap().values(), [
+    false, true,
+  ])
+  assert_eq(monitor.stats().retained_candidates, 1)
+  assert_eq(monitor.stats().processed, 3)
+}

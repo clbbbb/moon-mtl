@@ -1,14 +1,14 @@
 {
   "method": "nonblank non-line-comment *.mbt; build, dependencies and generated interfaces excluded",
   "groups": {
-    "tests": 1974,
-    "core": 1843,
+    "tests": 1997,
+    "core": 1847,
     "cli": 222,
     "scenarios": 138
   },
-  "total": 4177,
+  "total": 4204,
   "files": {
-    "algorithm_wbtest.mbt": 107,
+    "algorithm_wbtest.mbt": 130,
     "audit.mbt": 99,
     "audit_test.mbt": 74,
     "cmd/main/main.mbt": 222,
@@ -24,7 +24,7 @@
     "identities_test.mbt": 163,
     "invariants_wbtest.mbt": 123,
     "limits.mbt": 70,
-    "monitor.mbt": 263,
+    "monitor.mbt": 267,
     "monitor_test.mbt": 183,
     "parser.mbt": 283,
     "parser_test.mbt": 105,
