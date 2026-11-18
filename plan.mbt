@@ -164,9 +164,10 @@ pub fn Plan::new(
   }
   let roots : Array[Int32] = []
   let names : Array[String] = []
+  let seen_names : Map[String, Bool] = Map([])
   let formulas : Array[Formula] = []
   for (name, formula) in rules {
-    if !valid_identifier(name) || names.contains(name) {
+    if !valid_identifier(name) || seen_names.get(name) is Some(_) {
       return Err(SyntaxError(0, "invalid or duplicate rule name"))
     }
     let id = match compiler.visit(formula, 1) {
@@ -174,6 +175,7 @@ pub fn Plan::new(
       Ok(v) => v
     }
     roots.push(id)
+    seen_names[name] = true
     names.push(name)
     formulas.push(formula)
   }
