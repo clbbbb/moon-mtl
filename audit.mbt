@@ -93,12 +93,7 @@ pub fn Audit::summaries(self : Audit) -> Array[RuleSummary] {
 
 ///|
 pub fn Audit::summary(self : Audit, name : String) -> RuleSummary? {
-  for summary in self.summaries {
-    if summary.name == name {
-      return Some(summary)
-    }
-  }
-  None
+  self.monitor.plan.rule_index(name).map(index => self.summaries[index])
 }
 
 ///|

@@ -141,6 +141,7 @@ pub fn Plan::from_strings(Array[(String, String)], limits? : Limits) -> Result[S
 pub fn Plan::new(Array[(String, Formula)], limits? : Limits) -> Result[Self, MonitorError]
 pub fn Plan::node_count(Self) -> Int32
 pub fn Plan::rule_count(Self) -> Int32
+pub fn Plan::rule_index(Self, String) -> Int32?
 pub fn Plan::rule_names(Self) -> Array[String]
 pub fn Plan::to_json(Self) -> String
 pub fn Plan::validate_trace(Self, Array[Observation]) -> Result[Unit, MonitorError]

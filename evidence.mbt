@@ -50,16 +50,11 @@ pub fn Monitor::explain(
   if self.processed == 0 {
     return Err(InvalidPosition(0))
   }
-  let mut root = -1
-  for i in 0..<self.plan.names.length() {
-    if self.plan.names[i] == name {
-      root = self.plan.roots[i]
-      break
-    }
+  let index = match self.plan.rule_index(name) {
+    Some(index) => index
+    None => return Err(SyntaxError(0, "unknown rule " + name))
   }
-  if root < 0 {
-    return Err(SyntaxError(0, "unknown rule " + name))
-  }
+  let root = self.plan.roots[index]
   let pending = [root]
   let visited = Array::make(self.plan.nodes.length(), false)
   let result : Array[Evidence] = []

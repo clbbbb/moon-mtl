@@ -20,6 +20,7 @@ pub struct Plan {
   priv temporal_nodes : Array[Int32]
   priv roots : Array[Int32]
   priv names : Array[String]
+  priv rule_indices : Map[String, Int32]
   priv formulas : Array[Formula]
   priv atoms : Array[String]
   priv limits : Limits
@@ -165,7 +166,7 @@ pub fn Plan::new(
   }
   let roots : Array[Int32] = []
   let names : Array[String] = []
-  let seen_names : Map[String, Bool] = Map([])
+  let seen_names : Map[String, Int32] = Map([])
   let formulas : Array[Formula] = []
   for (name, formula) in rules {
     if !valid_identifier(name) || seen_names.get(name) is Some(_) {
@@ -176,7 +177,7 @@ pub fn Plan::new(
       Ok(v) => v
     }
     roots.push(id)
-    seen_names[name] = true
+    seen_names[name] = names.length()
     names.push(name)
     formulas.push(formula)
   }
@@ -194,6 +195,7 @@ pub fn Plan::new(
     atoms: compiler.atoms,
     roots,
     names,
+    rule_indices: seen_names,
     formulas,
     limits,
   })
@@ -290,4 +292,10 @@ pub fn Plan::validate_trace(
     }
   }
   Ok(())
+}
+
+///|
+/// Expected constant-time lookup without exposing mutable plan internals.
+pub fn Plan::rule_index(self : Plan, name : String) -> Int32? {
+  self.rule_indices.get(name)
 }

@@ -141,3 +141,16 @@ test "reused queue staging overwrites aborted additions before committing a retr
   assert_eq(monitor.stats().retained_candidates, 1)
   assert_eq(monitor.stats().processed, 3)
 }
+
+///|
+test "compiled rule lookup preserves declaration indices and unknown-name behavior" {
+  let plan = Plan::from_strings([("z", "p"), ("a", "q"), ("middle", "p | q")]).unwrap()
+  assert_eq(plan.rule_index("z"), Some(0))
+  assert_eq(plan.rule_index("a"), Some(1))
+  assert_eq(plan.rule_index("middle"), Some(2))
+  assert_eq(plan.rule_index("unknown"), None)
+  let names = plan.rule_names()
+  names[0] = "altered"
+  assert_eq(plan.rule_index("altered"), None)
+  assert_eq(plan.rule_index("z"), Some(0))
+}
