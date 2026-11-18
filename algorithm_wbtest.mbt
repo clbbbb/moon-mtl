@@ -38,3 +38,24 @@ test "rule preflight rejects oversized batches before parsing their text" {
   )
   assert_true(Plan::from_strings([]) is Err(ResourceLimit(_)))
 }
+
+///|
+test "binary expiration agrees with linear lower bound for all frontier shapes" {
+  let queue = CandidateQueue::new()
+  for i in 0..<257 {
+    queue.items.push({ position: i, time: (i * 3).to_int64(), })
+  }
+  for head in 0..<258 {
+    for upper in [0L, 1L, 17L, 180L, 770L, 9223372036854775807L] {
+      for time in [770L, 800L, 1000L, 9223372036854775807L] {
+        let mut expected = head
+        while expected < queue.items.length() &&
+              time - queue.items[expected].time > upper {
+          expected += 1
+        }
+        assert_eq(queue.first_live(head, time, upper), expected)
+      }
+    }
+  }
+  assert_eq(CandidateQueue::new().first_live(0, 0L, 0L), 0)
+}

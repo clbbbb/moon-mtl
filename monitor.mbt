@@ -201,10 +201,7 @@ pub fn Monitor::push(
           }
           _ => ()
         }
-        while head < queue.items.length() &&
-              event.time - queue.items[head].time > window.upper {
-          head += 1
-        }
+        head = queue.first_live(head, event.time, window.upper)
         heads[id] = head
         additions[id] = if add { Some(current) } else { None }
         let candidate = if head < queue.items.length() {
@@ -276,4 +273,36 @@ pub fn Monitor::last_decision(self : Monitor) -> Decision? {
       })
     }
   }
+}
+
+///|
+/// Fast paths cover no expiration, one expiration and a fully expired queue.
+/// Larger partial expiration jumps use lower-bound search instead of scanning.
+fn CandidateQueue::first_live(
+  self : CandidateQueue,
+  head : Int32,
+  time : Int64,
+  upper : Int64,
+) -> Int32 {
+  let end = self.items.length()
+  if head == end || time - self.items[head].time <= upper {
+    return head
+  }
+  if time - self.items[end - 1].time > upper {
+    return end
+  }
+  let mut low = head + 1
+  if time - self.items[low].time <= upper {
+    return low
+  }
+  let mut high = end - 1
+  while low < high {
+    let middle = low + (high - low) / 2
+    if time - self.items[middle].time > upper {
+      low = middle + 1
+    } else {
+      high = middle
+    }
+  }
+  low
 }
