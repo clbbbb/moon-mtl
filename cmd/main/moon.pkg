@@ -1,0 +1,14 @@
+import {
+  "cauchyQ/moon-mtl" @mtl,
+  "cauchyQ/moon-mtl/scenarios",
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "js"
+
+options(
+  link: { "js": { "format": "cjs" } },
+)

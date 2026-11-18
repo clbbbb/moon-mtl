@@ -1,0 +1,3 @@
+{"time":"0","values":{"handshake":true,"send":false}}
+{"time":"3","values":{"handshake":false,"send":true}}
+{"time":"20","values":{"handshake":false,"send":true}}

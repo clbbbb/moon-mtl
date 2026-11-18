@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "cauchyQ/moon-mtl/scenarios"
+
+import {
+  "cauchyQ/moon-mtl",
+}
+
+// Values
+pub fn verdict_checksum(Int32, Array[Bool]) -> Int32
+
+// Errors
+
+// Types and methods
+pub struct Scenario {
+  // private fields
+}
+pub fn Scenario::name(Self) -> String
+pub fn Scenario::new(String, Int32) -> Result[Self, @moon-mtl.MonitorError]
+pub fn Scenario::plan(Self) -> Result[@moon-mtl.Plan, @moon-mtl.MonitorError]
+pub fn Scenario::rules(Self) -> Array[(String, String)]
+pub fn Scenario::run(Self) -> Result[Summary, @moon-mtl.MonitorError]
+pub fn Scenario::trace(Self) -> Array[@moon-mtl.Observation]
+
+pub(all) struct Summary {
+  events : Int32
+  checks : Int32
+  failures : Int32
+  checksum : Int32
+  nodes : Int32
+  peak_candidates : Int32
+}
+
+// Type aliases
+
+// Traits

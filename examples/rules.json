@@ -1,0 +1,1 @@
+{"version":"1","rules":[{"name":"send_checked","formula":"send -> once[1,12] handshake"}]}
