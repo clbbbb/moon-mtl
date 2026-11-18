@@ -194,6 +194,16 @@ pub fn Plan::from_strings(
   rules : Array[(String, String)],
   limits~ : Limits = Limits::defaults(),
 ) -> Result[Plan, MonitorError] {
+  if rules.length() == 0 || rules.length() > limits.nodes {
+    return Err(ResourceLimit("rule count must be 1..max_nodes"))
+  }
+  let seen : Map[String, Bool] = Map([])
+  for (name, _) in rules {
+    if !valid_identifier(name) || seen.get(name) is Some(_) {
+      return Err(SyntaxError(0, "invalid or duplicate rule name"))
+    }
+    seen[name] = true
+  }
   let parsed : Array[(String, Formula)] = []
   for (name, text) in rules {
     let formula = match parse(text, limits~) {
