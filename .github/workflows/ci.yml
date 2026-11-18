@@ -24,3 +24,4 @@ jobs:
           moon build --target js --release --deny-warn
           python3 scripts/verify_cli.py
           python3 scripts/count_source.py --check
+          python3 scripts/compare_algorithms.py --check

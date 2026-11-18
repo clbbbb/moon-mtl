@@ -31,6 +31,7 @@ def main():
             traces[f"{name}/{size}"] = hashlib.sha256(trace.encode()).hexdigest()
     metadata = {
         "utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "revision": command("git", "rev-parse", "HEAD"),
         "platform": platform.platform(), "processor": platform.processor(),
         "node": command("node", "--version"), "moon": command("moon", "version"),
         "build": "moon build --target js --release --deny-warn",
