@@ -81,6 +81,20 @@ pub fn JsonlSession::feed(
   self : JsonlSession,
   chunk : String,
 ) -> Result[Array[Decision], MonitorError] {
+  let decisions : Array[Decision] = []
+  self
+  .feed_each(chunk, decision => decisions.push(decision))
+  .map(_ => decisions)
+}
+
+///|
+/// Deliver each accepted record before moving on to the next one.
+/// The callback must not call feed or finish on this same session.
+pub fn JsonlSession::feed_each(
+  self : JsonlSession,
+  chunk : String,
+  emit : (Decision) -> Unit,
+) -> Result[Unit, MonitorError] {
   if self.closed {
     return Err(self.failure.unwrap_or(InvalidData("JSONL session is finished")))
   }
@@ -89,20 +103,23 @@ pub fn JsonlSession::feed(
   }
   let joined = self.pending + chunk
   self.pending = ""
-  let lines = joined.split("\n").to_array()
-  let decisions : Array[Decision] = []
-  for i in 0..<(lines.length() - 1) {
-    match self.record(lines[i].to_owned()) {
-      Err(e) => return Err(e)
-      Ok(value) => decisions.push(value)
+  let mut tail = ""
+  let mut has_tail = false
+  for line in joined.split("\n") {
+    if has_tail {
+      match self.record(tail) {
+        Err(e) => return Err(e)
+        Ok(value) => emit(value)
+      }
     }
+    tail = line.to_owned()
+    has_tail = true
   }
-  let tail = lines[lines.length() - 1].to_owned()
   if tail.length() > 1048576 {
     return Err(self.reject(ResourceLimit("JSONL unfinished record length")))
   }
   self.pending = tail
-  Ok(decisions)
+  Ok(())
 }
 
 ///|

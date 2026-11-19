@@ -1,17 +1,17 @@
 {
   "method": "nonblank non-line-comment *.mbt; build, dependencies and generated interfaces excluded",
   "groups": {
-    "tests": 2008,
-    "core": 1842,
-    "cli": 222,
+    "tests": 2044,
+    "core": 1858,
+    "cli": 283,
     "scenarios": 138
   },
-  "total": 4210,
+  "total": 4323,
   "files": {
-    "algorithm_wbtest.mbt": 141,
+    "algorithm_wbtest.mbt": 164,
     "audit.mbt": 94,
     "audit_test.mbt": 74,
-    "cmd/main/main.mbt": 222,
+    "cmd/main/main.mbt": 283,
     "cmd/main/main_wbtest.mbt": 34,
     "decision_transport.mbt": 51,
     "decision_transport_test.mbt": 84,
@@ -24,7 +24,7 @@
     "identities_test.mbt": 163,
     "invariants_wbtest.mbt": 123,
     "limits.mbt": 70,
-    "monitor.mbt": 267,
+    "monitor.mbt": 270,
     "monitor_test.mbt": 183,
     "parser.mbt": 283,
     "parser_test.mbt": 105,
@@ -36,8 +36,8 @@
     "scenarios/scenarios.mbt": 138,
     "scenarios/scenarios_test.mbt": 48,
     "semantics_test.mbt": 174,
-    "session.mbt": 113,
-    "session_test.mbt": 110,
+    "session.mbt": 126,
+    "session_test.mbt": 123,
     "transport.mbt": 166,
     "transport_test.mbt": 112
   }

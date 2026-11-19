@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "cauchyQ/moon-mtl"
+package "clbbbb/moon-mtl"
 
 // Values
 pub fn evaluate_reference(Formula, Array[Observation], Int32, steps? : Int32) -> Result[Bool, MonitorError]
@@ -73,6 +73,7 @@ pub fn JsonlSession::buffered_units(Self) -> Int32
 pub fn JsonlSession::error(Self) -> MonitorError?
 pub fn JsonlSession::explain(Self, String) -> Result[Array[Evidence], MonitorError]
 pub fn JsonlSession::feed(Self, String) -> Result[Array[Decision], MonitorError]
+pub fn JsonlSession::feed_each(Self, String, (Decision) -> Unit) -> Result[Unit, MonitorError]
 pub fn JsonlSession::finish(Self) -> Result[Array[Decision], MonitorError]
 pub fn JsonlSession::is_finished(Self) -> Bool
 pub fn JsonlSession::last_decision(Self) -> Decision?

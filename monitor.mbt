@@ -105,7 +105,8 @@ pub struct Monitor {
   priv mut last_values : Array[Bool]
   priv mut scratch_values : Array[Bool]
   priv mut witnesses : Array[Witness?]
-  priv mut barriers : Array[Witness?]
+  priv mut staged_witnesses : Array[Witness?]
+  priv barriers : Array[Witness?]
   priv mut last_time : Int64?
   priv mut processed : Int32
   priv mut retained : Int32
@@ -126,6 +127,7 @@ pub fn Monitor::new(plan : Plan) -> Monitor {
     last_values: Array::make(plan.nodes.length(), false),
     scratch_values: Array::make(plan.nodes.length(), false),
     witnesses: Array::make(plan.nodes.length(), None),
+    staged_witnesses: Array::make(plan.nodes.length(), None),
     barriers: Array::make(plan.nodes.length(), None),
     last_time: None,
     processed: 0,
@@ -170,8 +172,8 @@ pub fn Monitor::push(
   let values = self.scratch_values
   let heads = self.staged_heads
   let additions = self.staged_additions
-  let witnesses : Array[Witness?] = Array::make(size, None)
-  let barriers = self.barriers.copy()
+  // Only Prior and queue-backed nodes have witnesses; each overwrites its slot.
+  let witnesses = self.staged_witnesses
   let mut retained = 0
   let current = Witness::{ position: self.processed, time: event.time, }
   for id in 0..<size {
@@ -201,7 +203,6 @@ pub fn Monitor::push(
           SincePast(_, left, right) => {
             if !values[left] {
               head = queue.items.length()
-              barriers[id] = Some(current)
             }
             add = values[right]
           }
@@ -235,6 +236,9 @@ pub fn Monitor::push(
   // The compiler records exactly the nodes owning temporal queues.
   for id in self.plan.temporal_nodes {
     self.queues[id].commit(heads[id], additions[id])
+    if self.plan.nodes[id] is SincePast(_, left, _) && !values[left] {
+      self.barriers[id] = Some(current)
+    }
   }
   let output : Array[Bool] = []
   for root in self.plan.roots {
@@ -249,8 +253,8 @@ pub fn Monitor::push(
   let previous_values = self.last_values
   self.last_values = values
   self.scratch_values = previous_values
+  self.staged_witnesses = self.witnesses
   self.witnesses = witnesses
-  self.barriers = barriers
   self.last_time = Some(event.time)
   self.processed += 1
   self.retained = retained

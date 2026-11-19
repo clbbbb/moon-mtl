@@ -1,6 +1,6 @@
 import {
-  "cauchyQ/moon-mtl" @mtl,
-  "cauchyQ/moon-mtl/scenarios",
+  "clbbbb/moon-mtl" @mtl,
+  "clbbbb/moon-mtl/scenarios",
   "moonbitlang/core/env",
   "moonbitlang/core/string",
 }

@@ -154,3 +154,28 @@ test "compiled rule lookup preserves declaration indices and unknown-name behavi
   assert_eq(plan.rule_index("altered"), None)
   assert_eq(plan.rule_index("z"), Some(0))
 }
+
+///|
+test "failed observation preserves the last committed Since explanation" {
+  let plan = Plan::from_strings(
+    [("since", "p since[0,5] q"), ("once", "once[0,5] r")],
+    limits=Limits::new(candidates=1).unwrap(),
+  ).unwrap()
+  let monitor = Monitor::new(plan)
+  let event = fn(t, p, q, r) {
+    Observation::new(t, Map([("p", p), ("q", q), ("r", r)])).unwrap()
+  }
+  monitor.push(event(0L, true, true, false)).unwrap() |> ignore
+  assert_true(
+    monitor.push(event(1L, false, true, true)) is Err(ResourceLimit(_)),
+  )
+  let committed = monitor.explain("since").unwrap()
+  assert_true(
+    committed.iter().any(item => item.witness is Some({ time: 0L, .. })),
+  )
+  assert_true(committed.iter().all(item => item.barrier is None))
+  monitor.push(event(1L, false, false, true)).unwrap() |> ignore
+  let next = monitor.explain("since").unwrap()
+  assert_true(next.iter().any(item => item.barrier is Some({ time: 1L, .. })))
+  assert_true(next.iter().all(item => item.witness is None))
+}

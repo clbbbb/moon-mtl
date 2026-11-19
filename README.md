@@ -58,7 +58,7 @@ let verdict = decision.value("send_checked")
 
 `Plan` 是可共享的编译结果；每个 `Monitor` 独立持有更新状态。`Reference` 是独立递归解释器，用于核对结果，不作为快速执行路径。`Audit` 统计每条规则的通过数、失败数、连续失败段和首次/末次失败位置，不保存整个日志。
 
-`JsonlSession.feed` 接收任意字符串块，完成一行后才提交事件；`finish` 处理最后一个未换行的记录。每块、每条记录最多 1 MiB UTF-16 单元。会话遇错后关闭，已接受的前缀保留，防止重试整个块导致重复执行。宿主应使用严格 UTF-8 解码器把字节流转换成字符串。
+`JsonlSession.feed` 接收字符串块，完成一行后提交事件。`feed_each` 在每一行提交后立即交付判定，后续坏行不会丢掉前缀判定。`finish` 处理最后一个未换行的记录。每块、每条记录最多 1,048,576 个 UTF-16 代码单元。会话遇错后关闭。CLI `replay` 以 64 KiB 的块读取文件，逐行严格解码 UTF-8，将判定写到标准输出。
 
 ## 数据与结果校验
 
@@ -78,7 +78,7 @@ let verdict = decision.value("send_checked")
 
 解析器把规则编译成拓扑排序 DAG，相同子表达式只计算一次。Once 保存满足条件的候选，Historically 保存反例候选，Since 在左式为假时清除旧见证。队列使用逻辑头和分段回收，避免每次移动整个数组。单条更新先检查并计算，再统一提交；时间戳、命题和候选预算错误都不会改变监测器状态。
 
-测试包括随机嵌套公式差分、短轨迹穷举、时序恒等式、时间平移、规则重排、长轨迹队列回收、错误后重试、传输数据拒绝和见证篡改。测试与样例分开计数，见 [源代码统计](reports/source-count.json)。当前有效 MoonBit 代码 4,210 行，其中核心 1,842 行、测试 2,008 行、命令行 222 行、场景 138 行，并非声称核心算法超过 4,000 行。
+测试包括随机嵌套公式差分、短轨迹穷举、时序恒等式、时间平移、规则重排、长轨迹队列回收、错误后重试、传输数据拒绝和见证篡改。核心库、测试、命令行和场景代码的分项统计见 [源代码统计](reports/source-count.json)。
 
 三组对照实验使用相同的确定性日志，对比共享 DAG、每条规则独立监测以及离线递归解释器。原始数据、环境和局限见 [实验报告](reports/benchmark.md)。这些是合成的应用日志，不代表真实生产部署，也没有据此声称优于 Reelay。
 
@@ -90,4 +90,4 @@ let verdict = decision.value("send_checked")
 
 这是独立实现，算法依据时序逻辑语义和公开文献。与现有项目的关系及许可证记录见 [来源说明](docs/sources.md)。许可证为 Apache-2.0。
 
-GitHub 仓库：https://github.com/clbbbb/moon-mtl 。Mooncakes 尚未发布；本地构建通过不等于远端 CI 或大赛验收已经通过。
+源码仓库见 [clbbbb/moon-mtl](https://github.com/clbbbb/moon-mtl)。在使用本库的 MoonBit 项目中运行 `moon add clbbbb/moon-mtl@0.1.0` 安装。

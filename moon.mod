@@ -9,7 +9,7 @@
 //   "moonbitlang/x@0.4.6",
 // }
 
-name = "cauchyQ/moon-mtl"
+name = "clbbbb/moon-mtl"
 
 version = "0.1.0"
 

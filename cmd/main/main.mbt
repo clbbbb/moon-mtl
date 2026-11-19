@@ -8,29 +8,76 @@ extern "js" fn fail(message : String) -> Unit =
 
 ///|
 #module("node:fs")
-extern "js" fn raw_read(path : String, encoding : String) -> String = "readFileSync"
+extern "js" fn open_file(path : String, mode : String) -> Int32 = "openSync"
 
 ///|
-extern "js" fn bounded_read(
+#module("node:fs")
+extern "js" fn close_file(fd : Int32) -> Unit = "closeSync"
+
+///|
+type ReadBuffer
+
+///|
+#module("node:fs")
+extern "js" fn read_file_chunk(
+  fd : Int32,
+  buffer : ReadBuffer,
+  offset : Int32,
+  length : Int32,
+) -> Int32 = "readSync"
+
+///|
+extern "js" fn read_lines(
   path : String,
-  read : (String, String) -> String,
+  whole : Bool,
+  open : (String, String) -> Int32,
+  read : (Int32, ReadBuffer, Int32, Int32) -> Int32,
+  close : (Int32) -> Unit,
+  emit : (String) -> String,
 ) -> String =
-  #| (path, read) => {
+  #| (path, whole, open, read, close, emit) => {
+  #|   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+  #|   const chunk = Buffer.alloc(65536);
+  #|   // Any valid UTF-8 record within the parser's UTF-16 limit fits here.
+  #|   const maxBytes = 3 * 1048576;
+  #|   let parts = [], size = 0, line = 1;
+  #|   function append(bytes) {
+  #|     if (!bytes.length) return;
+  #|     size += bytes.length;
+  #|     if (size > maxBytes) throw new Error("input exceeds the byte budget");
+  #|     parts.push(Buffer.from(bytes));
+  #|   }
+  #|   function deliver(newline) {
+  #|     let text;
+  #|     try { text = decoder.decode(Buffer.concat(parts, size)); }
+  #|     catch (_) { throw new Error("invalid UTF-8"); }
+  #|     parts = [];
+  #|     size = 0;
+  #|     return emit(newline ? text + "\n" : text);
+  #|   }
   #|   try {
-  #|     const text = read(path, "utf8");
-  #|     return text.length <= 16777216 ? "=" + text : "!file exceeds 16 MiB code units";
-  #|   } catch(e) { return "!" + String(e.message); }
+  #|     const fd = open(path, "r");
+  #|     try {
+  #|       for (;;) {
+  #|         const n = read(fd, chunk, 0, chunk.length);
+  #|         if (!n) break;
+  #|         let start = 0;
+  #|         for (let i = 0; !whole && i < n; i++) {
+  #|           if (chunk[i] !== 10) continue;
+  #|           append(chunk.subarray(start, i));
+  #|           const error = deliver(true);
+  #|           if (error) return error;
+  #|           line++;
+  #|           start = i + 1;
+  #|         }
+  #|         append(chunk.subarray(start, n));
+  #|       }
+  #|       return whole || size ? deliver(false) : "";
+  #|     } finally { close(fd); }
+  #|   } catch (error) {
+  #|     return (whole ? "rules: " : "line " + line + ": ") + error.message;
+  #|   }
   #| }
-
-///|
-fn read(path : String) -> Result[String, @mtl.MonitorError] {
-  let result = bounded_read(path, raw_read)
-  if result.has_prefix("!") {
-    Err(@mtl.InvalidData(result[1:].to_owned()))
-  } else {
-    Ok(result[1:].to_owned())
-  }
-}
 
 ///|
 fn integer(text : String) -> Result[Int32, @mtl.MonitorError] {
@@ -48,38 +95,57 @@ fn integer(text : String) -> Result[Int32, @mtl.MonitorError] {
 
 ///|
 fn replay(rules : String, events : String) -> Result[Unit, @mtl.MonitorError] {
-  let rules = match read(rules) {
+  let mut config = ""
+  let error = read_lines(rules, true, open_file, read_file_chunk, close_file, text => {
+    config = text
+    ""
+  })
+  if !error.is_empty() {
+    return Err(@mtl.InvalidData(error))
+  }
+  let plan = match @mtl.Plan::from_json(config) {
     Err(e) => return Err(e)
     Ok(value) => value
   }
-  let plan = match @mtl.Plan::from_json(rules) {
-    Err(e) => return Err(e)
-    Ok(value) => value
+  let session = @mtl.JsonlSession::new(plan)
+  let error = read_lines(
+    events,
+    false,
+    open_file,
+    read_file_chunk,
+    close_file,
+    text => {
+      // A complete record exactly at the limit still fits without its delimiter.
+      let result = if text.has_suffix("\n") && text.length() > 1048576 {
+        if text.length() != 1048577 {
+          Err(@mtl.ResourceLimit("JSONL record length"))
+        } else {
+          session
+          .feed_each(text[:text.length() - 1].to_owned(), decision => {
+            println(decision.to_json())
+          })
+          .bind(_ => {
+            session.feed_each("\n", decision => println(decision.to_json()))
+          })
+        }
+      } else {
+        session.feed_each(text, decision => println(decision.to_json()))
+      }
+      match result {
+        Ok(_) => ""
+        Err(e) => e.message()
+      }
+    },
+  )
+  if !error.is_empty() {
+    return Err(@mtl.InvalidData(error))
   }
-  let events = match read(events) {
+  match session.finish() {
     Err(e) => return Err(e)
-    Ok(value) => value
-  }
-  let monitor = @mtl.Monitor::new(plan)
-  let lines = events.split("\n").to_array()
-  for i in 0..<lines.length() {
-    if i == lines.length() - 1 && lines[i].is_empty() {
-      break
-    }
-    let record = match @mtl.Observation::from_json(lines[i].to_owned()) {
-      Err(e) =>
-        return Err(
-          @mtl.InvalidData("line " + (i + 1).to_string() + ": " + e.message()),
-        )
-      Ok(value) => value
-    }
-    match monitor.push(record) {
-      Err(e) =>
-        return Err(
-          @mtl.InvalidData("line " + (i + 1).to_string() + ": " + e.message()),
-        )
-      Ok(value) => println(value.to_json())
-    }
+    Ok(decisions) =>
+      for decision in decisions {
+        println(decision.to_json())
+      }
   }
   Ok(())
 }

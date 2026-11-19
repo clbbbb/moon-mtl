@@ -93,6 +93,21 @@ test "session catches errors in unterminated last record and blank line" {
 }
 
 ///|
+test "feed_each delivers the whole accepted prefix before reporting a bad line" {
+  let plan = @moon-mtl.Plan::from_strings([("r", "p")]).unwrap()
+  let session = @moon-mtl.JsonlSession::new(plan)
+  let first = event(0L, true, false).to_json()
+  let second = event(1L, false, false).to_json()
+  let positions = []
+  let result = session.feed_each(first + "\n" + second + "\ninvalid\n", decision => {
+    positions.push(decision.position())
+  })
+  assert_true(result is Err(_))
+  assert_eq(positions, [0, 1])
+  assert_eq(session.stats().processed, 2)
+}
+
+///|
 test "session enforces unfinished record and chunk budgets" {
   let plan = @moon-mtl.Plan::from_strings([("r", "p")]).unwrap()
   let session = @moon-mtl.JsonlSession::new(plan)
