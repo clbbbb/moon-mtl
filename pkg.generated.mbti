@@ -155,6 +155,7 @@ pub struct Reference {
 pub fn Reference::evaluate(Self, Int32) -> Result[Decision, MonitorError]
 pub fn Reference::last_steps(Self) -> Int32
 pub fn Reference::new(Plan, Array[Observation], steps? : Int32) -> Result[Self, MonitorError]
+pub fn Reference::verify(Self, Decision) -> Result[Bool, MonitorError]
 
 pub(all) struct RuleSummary {
   name : String

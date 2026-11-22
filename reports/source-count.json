@@ -1,12 +1,12 @@
 {
   "method": "nonblank non-line-comment *.mbt; build, dependencies and generated interfaces excluded",
   "groups": {
-    "tests": 2044,
-    "core": 1858,
+    "tests": 2078,
+    "core": 1873,
     "cli": 283,
     "scenarios": 138
   },
-  "total": 4323,
+  "total": 4372,
   "files": {
     "algorithm_wbtest.mbt": 164,
     "audit.mbt": 94,
@@ -16,8 +16,8 @@
     "decision_transport.mbt": 51,
     "decision_transport_test.mbt": 84,
     "differential_test.mbt": 153,
-    "evidence.mbt": 256,
-    "evidence_test.mbt": 224,
+    "evidence.mbt": 259,
+    "evidence_test.mbt": 236,
     "format.mbt": 57,
     "format_test.mbt": 82,
     "formula.mbt": 70,
@@ -36,8 +36,8 @@
     "scenarios/scenarios.mbt": 138,
     "scenarios/scenarios_test.mbt": 48,
     "semantics_test.mbt": 174,
-    "session.mbt": 126,
-    "session_test.mbt": 123,
+    "session.mbt": 138,
+    "session_test.mbt": 145,
     "transport.mbt": 166,
     "transport_test.mbt": 112
   }

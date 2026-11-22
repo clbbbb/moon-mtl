@@ -77,7 +77,7 @@ pub fn Reference::evaluate(
   Ok({
     position,
     time: self.trace[position].time,
-    names: self.plan.names.copy(),
+    names: self.plan.names,
     values,
   })
 }

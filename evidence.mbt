@@ -142,19 +142,25 @@ pub fn Plan::verify_decision(
     Err(e) => return Err(e)
     Ok(_) => ()
   }
-  if decision.position < 0 || decision.position >= trace.length() {
-    return Err(InvalidPosition(decision.position))
+  // This synchronous check uses the already validated trace without retaining it.
+  Reference::{ plan: self, trace, limit: 1000000, used: 0, }.verify(decision)
+}
+
+///|
+pub fn Reference::verify(
+  self : Reference,
+  decision : Decision,
+) -> Result[Bool, MonitorError] {
+  let position = decision.position
+  if position < 0 || position >= self.trace.length() {
+    return Err(InvalidPosition(position))
   }
-  if decision.time != trace[decision.position].time ||
-    decision.names != self.names ||
-    decision.values.length() != self.roots.length() {
+  if decision.time != self.trace[position].time ||
+    decision.names != self.plan.names ||
+    decision.values.length() != self.plan.roots.length() {
     return Ok(false)
   }
-  let reference = match Reference::new(self, trace) {
-    Err(e) => return Err(e)
-    Ok(value) => value
-  }
-  match reference.evaluate(decision.position) {
+  match self.evaluate(position) {
     Err(e) => return Err(e)
     Ok(expected) => return Ok(expected.values == decision.values)
   }

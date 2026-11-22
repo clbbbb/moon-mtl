@@ -50,5 +50,5 @@ pub fn Plan::decision_from_json(
         )
     }
   }
-  Ok({ position, time, names: self.names.copy(), values, })
+  Ok({ position, time, names: self.names, values, })
 }

@@ -237,3 +237,17 @@ test "evidence verifies custom compiler limits without reverting to defaults" {
     plan.verify_evidence(trace, monitor.explain("deep").unwrap()).unwrap(),
   )
 }
+
+///|
+test "one reference can verify several decisions against its owned trace" {
+  let plan = @moon-mtl.Plan::from_strings([("r", "previous p")]).unwrap()
+  let trace = [event(0L, true, false), event(1L, false, false)]
+  let reference = @moon-mtl.Reference::new(plan, trace).unwrap()
+  let monitor = @moon-mtl.Monitor::new(plan)
+  let first = monitor.push(trace[0]).unwrap()
+  let second = monitor.push(trace[1]).unwrap()
+  trace[0] = event(0L, false, false)
+  assert_true(reference.verify(first).unwrap())
+  assert_true(reference.verify(second).unwrap())
+  assert_true(!plan.verify_decision(trace, second).unwrap())
+}

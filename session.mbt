@@ -6,6 +6,7 @@ pub struct JsonlSession {
   priv monitor : Monitor
   priv mut pending : String
   priv mut records : Int32
+  priv mut delivering : Bool
   priv mut closed : Bool
   priv mut failure : MonitorError?
 }
@@ -16,6 +17,7 @@ pub fn JsonlSession::new(plan : Plan) -> JsonlSession {
     monitor: Monitor::new(plan),
     pending: "",
     records: 0,
+    delivering: false,
     closed: false,
     failure: None,
   }
@@ -89,12 +91,15 @@ pub fn JsonlSession::feed(
 
 ///|
 /// Deliver each accepted record before moving on to the next one.
-/// The callback must not call feed or finish on this same session.
+/// Reentrant feed and finish calls return an error during callback delivery.
 pub fn JsonlSession::feed_each(
   self : JsonlSession,
   chunk : String,
   emit : (Decision) -> Unit,
 ) -> Result[Unit, MonitorError] {
+  if self.delivering {
+    return Err(InvalidData("JSONL callback is active"))
+  }
   if self.closed {
     return Err(self.failure.unwrap_or(InvalidData("JSONL session is finished")))
   }
@@ -109,7 +114,11 @@ pub fn JsonlSession::feed_each(
     if has_tail {
       match self.record(tail) {
         Err(e) => return Err(e)
-        Ok(value) => emit(value)
+        Ok(value) => {
+          self.delivering = true
+          emit(value)
+          self.delivering = false
+        }
       }
     }
     tail = line.to_owned()
@@ -130,6 +139,9 @@ pub fn JsonlSession::finish(
 ) -> Result[Array[Decision], MonitorError] {
   if self.failure is Some(error) {
     return Err(error)
+  }
+  if self.delivering {
+    return Err(InvalidData("JSONL callback is active"))
   }
   if self.closed {
     return Ok([])

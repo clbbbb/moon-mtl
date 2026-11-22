@@ -247,7 +247,7 @@ pub fn Monitor::push(
   let decision = Decision::{
     position: self.processed,
     time: event.time,
-    names: self.plan.names.copy(),
+    names: self.plan.names,
     values: output,
   }
   let previous_values = self.last_values
@@ -276,7 +276,7 @@ pub fn Monitor::last_decision(self : Monitor) -> Decision? {
       Some({
         position: self.processed - 1,
         time,
-        names: self.plan.names.copy(),
+        names: self.plan.names,
         values,
       })
     }

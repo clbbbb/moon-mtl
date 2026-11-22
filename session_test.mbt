@@ -136,3 +136,27 @@ test "session monotonicity errors identify the physical JSONL line" {
   assert_true(session.error().unwrap().message().contains("line 2"))
   assert_eq(session.stats().processed, 1)
 }
+
+///|
+test "callback cannot finish or reenter the active JSONL session" {
+  let plan = @moon-mtl.Plan::from_strings([("r", "p")]).unwrap()
+  let session = @moon-mtl.JsonlSession::new(plan)
+  let records = event(0L, true, false).to_json() +
+    "\n" +
+    event(1L, false, false).to_json() +
+    "\n"
+  let positions = []
+  let blocked = []
+  session
+  .feed_each(records, decision => {
+    positions.push(decision.position())
+    blocked.push(session.finish() is Err(_))
+    blocked.push(session.feed("") is Err(_))
+  })
+  .unwrap()
+  assert_eq(positions, [0, 1])
+  assert_eq(blocked, [true, true, true, true])
+  assert_true(!session.is_finished())
+  assert_eq(session.finish().unwrap().length(), 0)
+  assert_true(session.is_finished())
+}
