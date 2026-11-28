@@ -2,11 +2,11 @@
   "method": "nonblank non-line-comment *.mbt; build, dependencies and generated interfaces excluded",
   "groups": {
     "tests": 2078,
-    "core": 1873,
+    "core": 1874,
     "cli": 283,
     "scenarios": 138
   },
-  "total": 4372,
+  "total": 4373,
   "files": {
     "algorithm_wbtest.mbt": 164,
     "audit.mbt": 94,
@@ -38,7 +38,7 @@
     "semantics_test.mbt": 174,
     "session.mbt": 138,
     "session_test.mbt": 145,
-    "transport.mbt": 166,
+    "transport.mbt": 167,
     "transport_test.mbt": 112
   }
 }
