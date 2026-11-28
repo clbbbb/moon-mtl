@@ -1,4 +1,6 @@
 ///|
+// Retain the explicit input depth limit while the RC deprecates its label.
+#warnings("-deprecated")
 fn read_json(text : String, maximum : Int32) -> Result[Json, MonitorError] {
   if text.length() > maximum {
     return Err(ResourceLimit("JSON input length"))
